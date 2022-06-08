@@ -16,7 +16,8 @@ beamformerObject1.calcChannelRealization
 beamformerObject1.calcBeamformerWeights
 % Расчет спектральной эффективности
 beamformerObject1.calcSpectralPerformance
-
+beamformerObject1.powAllocation = true;
+beamformerObject1.calcPowSpectralPerf
 % Блок 2 входных параметров для расчета
         simulationParams2.horizontalElementsCount = 8;
         simulationParams2.verticalElementsCount = 8;

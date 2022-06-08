@@ -30,6 +30,9 @@ classdef Beamformer < handle
         beamformerMethod
         channelCoeffs
         spectralPerformance
+        powAllocation
+        gamma
+        powSpectrPerformance
     end
 
     methods
@@ -48,10 +51,13 @@ classdef Beamformer < handle
 
             % Расчет матриц прекодирования
             this.calcBeamformerWeights;
-
+            % Initializer Power Allocation
+            this.powAllocation = false;
+            this.gamma = ones(this.nUsers,1);
             % Расчет спектральной эффективности радиопередачи с учетом
             % матрицы прекодирования
             this.calcSpectralPerformance;
+
         end
 
         function calcChannelRealization(this)
@@ -163,21 +169,81 @@ classdef Beamformer < handle
                     error('Выбранный тип матрицы прекодирования не найден!');
             end
         end % Конец function calcBeamformerWeights(this)
-
-        function calcPowerAllocation(this)
+        
+        function gamma = waterPouring(this, snrdB, H)
+            % Algorithm for filling Antenna array snrdB for H channel [1]
+            if snrdB<2
+                error('Error: SNR should be greater than 2, not %s', snrdB);
+            end 	% if snrdB<2
+            EsNo = db2pow(snrdB);
+            % H calculation
+            r = rank(H);
+            M = size(this.channelCoeffs,1);
+            lambda = eig(H * H');
+            lambda = lambda(end:-1:1);
+            p = 1;
+            gamma = zeros(1,r);
+            filled = false;
+            % Main filling algorithm
+            while ~filled
+                N = r-p+1;
+                slice = 1:N;
+                if length(slice)<2  % degenerate case
+                    gamma = ones(1,r);
+                    return
+                end     % if length(slice)<2
+                invLambda = sum(1./lambda(slice));
+                mu = (M/N)*(1+(1/EsNo) * invLambda);
+                gamma(slice) = mu - (M./(EsNo*lambda(slice)));
+                if gamma(N)<0     % non physible gain
+                    gamma(N)=0;
+                    p = p+1;
+                else
+                    filled = true;
+                end     % if gamma(1+N)<0
+            end     % while ~filled
+        % [1] Arogyaswami Paulraj. Introduction to space-time wireless
+        % communications, p. 68
+        end % waterPouring 
+        
+        function calcPowerAllocation(this, snrdB)
             % Метод класса, реализующий расчет распределение мощности бортового радиокомплекса
             % космического аппарата которая ограничена значениями this.snrdB.
-        end
-
+            if strcmp(this.beamformerMethod,'MRT')
+                this.gamma = this.waterPouring(snrdB, this.channelCoeffs);
+            else
+                this.gamma = ones(this.nUsers,1);
+            end     % if beamformerMethod
+        end  % calcPowerAllocation
+        
+        function calcPowSpectralPerf(this)
+            % Сalculate Spect performance with equal weights at low SNR
+            this.calcSpectralPerformance;
+            % Calculate only 
+            slice = this.snrdB>=2.0;
+            this.powSpectrPerformance = zeros(1, length(this.snrdB));
+            this.powSpectrPerformance(~slice) = this.spectralPerformance(~slice);
+            idx = 1:length(this.powSpectrPerformance);
+            for i = idx(slice)
+                this.calcPowerAllocation(this.snrdB(i))
+                this.powSpectrPerformance(i) = this.calcSP(this.snrdB(i));
+            end     % for snr
+        end % calcPowSpectralPerf
+            
         function calcSpectralPerformance(this)
             % Метод класса, реализующий расчет спектральной эффективности
             % радиопередачи с учетом матрицы прекодирования полученной в расчете
             % и канальной матрицы системы MIMO
 
             % Задание диапазона рассматриваемых значений ОСШ в dB
-            this.snrdB = linspace(- 40,5,45);
+            this.snrdB = linspace(- 40,10, 100);
+            this.spectralPerformance = this.calcSP(this.snrdB);
+        end % Конец function calcSpectralPerformance
+        
+        function SP = calcSP(this, snrdB)
+        % Calculate Spectral performance, internal function
             % Расчет принятого сигнала
-            channelGains = abs(this.channelCoeffs * this.beamformerWeights) .^ 2;
+            channelGains = abs(this.channelCoeffs * (this.beamformerWeights*diag(this.gamma))) .^ 2;
             % Расчет полезной составляющей сигнала (прямого канала прохождения)
             signalGains = diag(channelGains);
             % Расчет интерференционной составляющей сигнала
@@ -185,24 +251,28 @@ classdef Beamformer < handle
             interferenceGains = sum(channelGains, 2) - signalGains;
             % Расчет спектральной эффективности по формуле Шеннона для k-го пользователя 
             % и для системы (суммированием по всем строкам/пользователям)
-            this.spectralPerformance = sum(log2(1 + signalGains ./ (db2pow(- this.snrdB) + interferenceGains)), 1);
-        end % Конец function calcSpectralPerformance
-
+            SP = sum(log2(1 + signalGains ./ (db2pow(-snrdB) + interferenceGains)), 1);
+        end     % calcSP
+        
         function vuzailizeLayout(this)
             % Метод класса, реализующий графическое изображение расчетного случая.
             % Расположения КА и пользователей будут представлены в декартовой
             % системе координат.
             this.multiuserLayout.visualize();
         end
-
+        
         function vuzailizeSpectralPerformance(this)
             % Метод класса, реализующий графическое изображение расчетного случая.
             % Выводятся зависимости спектральной эффективности от ОСШ
-            legg = {0};
+            legg = {};
             for objIdx=1:numel(this)
                 plot(this(objIdx).snrdB, this(objIdx).spectralPerformance);
-                legg(objIdx) = {this(objIdx).beamformerMethod};
+                legg(end+1) = {this(objIdx).beamformerMethod};
                 hold on
+                if this(objIdx).powAllocation
+                    plot(this(objIdx).snrdB, this(objIdx).powSpectrPerformance);
+                    legg(end+1) = {strcat(this(objIdx).beamformerMethod,' & Power Allocation')};
+                end     % powAllocation
             end
             hold off
             legend(legg);
@@ -214,6 +284,6 @@ classdef Beamformer < handle
             grid on;
         end
 
-    end
+    end % methods
 end
 
