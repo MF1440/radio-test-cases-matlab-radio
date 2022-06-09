@@ -30,6 +30,7 @@ classdef Beamformer < handle
         beamformerMethod
         channelCoeffs
         spectralPerformance
+        userPowerDist
     end
 
     methods
@@ -167,6 +168,15 @@ classdef Beamformer < handle
         function calcPowerAllocation(this)
             % Метод класса, реализующий расчет распределение мощности бортового радиокомплекса
             % космического аппарата которая ограничена значениями this.snrdB.
+            
+            % Задание диапазона рассматриваемых значений ОСШ в dB
+            this.snrdB = linspace(- 40,5,45);
+            % Расчет принятого сигнала
+            channelGains = abs(this.channelCoeffs * this.beamformerWeights) .^ 2;
+            % Расчет полезной составляющей сигнала (прямого канала прохождения)
+            signalGains = diag(channelGains);
+            % Расчет распределения мощности по заданному ОСШ, АБГШ ед. мощности 
+            this.userPowerDist=(1./signalGains) * db2pow(this.snrdB);             
         end
 
         function calcSpectralPerformance(this)
