@@ -44,14 +44,14 @@ classdef Beamformer < handle
             this.allocationMatrix = simulationParams.radAllocationMatrix;
 
             % Генерация канальных коэффициентов
-            this.calcChannelRealization;
+            this.calcChannelRealization();
 
             % Расчет матриц прекодирования
-            this.calcBeamformerWeights;
+            this.calcBeamformerWeights();
 
             % Расчет спектральной эффективности радиопередачи с учетом
             % матрицы прекодирования
-            this.calcSpectralPerformance;
+            this.calcSpectralPerformance();
         end
 
         function calcChannelRealization(this)
