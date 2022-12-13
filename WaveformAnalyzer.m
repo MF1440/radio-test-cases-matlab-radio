@@ -30,6 +30,8 @@ classdef WaveformAnalyzer < handle
     %
 
     properties
+        wfStorage
+
         rmsEvm
         waveformMeanPower
         channelBandwidth
@@ -39,13 +41,15 @@ classdef WaveformAnalyzer < handle
     end
 
     methods
-        function this = WaveformAnalyzer()
+        function this = WaveformAnalyzer(storage)
             % Конструктор класса. Чтение waveform-ы во временной области и структуры с информацией
             % необходимой для дальнейшей обработки данных и заполнения полей класса
+            this.wfStorage = storage;
         end
 
         function calcWaveformParameters(this)
-
+            this.waveformMeanPower = mean(abs(this.wfStorage.getSamples().^2));
+            this.waveformMeanPower
         end
 
         function plotPowerSpectrumDensity(this)
@@ -58,6 +62,10 @@ classdef WaveformAnalyzer < handle
 
         function calcEvmPerformance(this)
 
+        end
+
+        function setStorage(this, storageHandle)
+            this.wfStorage = storageHandle;
         end
     end
 end
