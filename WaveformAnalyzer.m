@@ -38,12 +38,15 @@ classdef WaveformAnalyzer < handle
         noiseMeanPower
         modulationType
         waveformDuration
+
+        subcarrierSpacing
     end
 
     methods
         function this = WaveformAnalyzer(storage)
-            % Конструктор класса. Чтение waveform-ы во временной области и структуры с информацией
-            % необходимой для дальнейшей обработки данных и заполнения полей класса
+            % Here I've decided to make some architecture change
+            % Since analyzer class should only analyze waveforms
+            % it should not store data but only reference to storage class
             this.wfStorage = storage;
         end
 
@@ -55,12 +58,14 @@ classdef WaveformAnalyzer < handle
         end
 
         function calcMeanPower(this)
-            this.waveformMeanPower = mean(abs(this.wfStorage.getSamples().^2));
+            this.waveformMeanPower = ...
+                                mean(abs(this.wfStorage.getSamples().^2));
         end
            
         % !TODO: check if need to divide or multiply by 2
         function calcChannelBandwidth(this)
             samplingRate = this.wfStorage.getSampleRate();
+            this.subcarrierSpacing = samplingRate / this.wfStorage.getNfft();
             occupancy = this.wfStorage.getSubCarriersCount() / this.wfStorage.getNfft();
             this.channelBandwidth = samplingRate * occupancy;
         end
@@ -86,14 +91,14 @@ classdef WaveformAnalyzer < handle
 
         function plotPowerSpectrumDensity(this)
             % plot(pow2db(abs(fftshift(fft(this.wfStorage.getSamples()))).^2));
-            [Pxx, w] = pwelch(this.wfStorage.getSamples());
-            Pxx = 10*log10(fftshift(Pxx));
+            [Pxx, w] = pwelch(this.wfStorage.getSamples(), [], [], [],...
+                              this.wfStorage.getSampleRate());
             figure;
-            plot(w, Pxx);
+            plot(w, pow2db(fftshift(Pxx)));
             xlabel("Frequency, Hz");
-            ylabel("Power, dB");
+            ylabel("Power density, dB/Hz");
             grid on;
-            title("Power spectrum density");
+            title("Power spectral density");
         end
 
         function plotPayloadConstellation(this)
