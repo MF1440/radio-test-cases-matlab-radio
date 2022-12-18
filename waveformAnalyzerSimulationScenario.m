@@ -11,3 +11,5 @@ wfStorage = WaveformStorage([wfDirPath filesep wfInfoFName], ...
 
 wfAnalyzer = WaveformAnalyzer(wfStorage);
 wfAnalyzer.calcWaveformParameters();
+wfAnalyzer.showAnalyzeResult();
+wfAnalyzer.plotPowerSpectrumDensity();

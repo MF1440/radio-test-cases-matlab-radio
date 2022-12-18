@@ -24,12 +24,29 @@ classdef WaveformStorage < handle
             obj.subCarriersCount = info.info.subCarriersCount;
             obj.payloadSymbols = info.info.payloadSymbols;
             obj.payloadSymbolsIdxs = info.info.payloadSymbolsIdxs;
+            obj.SampleRate = info.info.SampleRate;
 
             obj.waveformSamples = wfSamples.txWaveform;
         end
         
         function wfSamples = getSamples(obj)
             wfSamples = obj.waveformSamples;
+        end
+
+        function sr = getSampleRate(obj)
+            sr = obj.SampleRate;
+        end
+
+        function pls = getPayloadSymbols(obj)
+            pls = obj.payloadSymbols;
+        end
+
+        function n = getNfft(obj)
+            n = obj.Nfft;
+        end
+
+        function n = getSubCarriersCount(obj)
+            n = obj.subCarriersCount;
         end
     end
 end

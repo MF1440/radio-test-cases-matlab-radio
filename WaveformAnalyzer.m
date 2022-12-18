@@ -48,12 +48,52 @@ classdef WaveformAnalyzer < handle
         end
 
         function calcWaveformParameters(this)
+            this.calcMeanPower();
+            this.calcChannelBandwidth();
+            this.estimateModulationType();
+            this.calcWaveformDuration();
+        end
+
+        function calcMeanPower(this)
             this.waveformMeanPower = mean(abs(this.wfStorage.getSamples().^2));
-            this.waveformMeanPower
+        end
+           
+        % !TODO: check if need to divide or multiply by 2
+        function calcChannelBandwidth(this)
+            samplingRate = this.wfStorage.getSampleRate();
+            occupancy = this.wfStorage.getSubCarriersCount() / this.wfStorage.getNfft();
+            this.channelBandwidth = samplingRate * occupancy;
+        end
+
+        % !TODO: Temporary solution!
+        % Need to introduce other modulation patterns
+        % PSK, QAM, APSK
+        function estimateModulationType(this)
+            uniquePtsCount = length(unique(this.wfStorage.getPayloadSymbols()));
+            switch uniquePtsCount
+                case 16
+                    this.modulationType = "QAM-16";
+                case 64
+                    this.modulationType = "QAM64";
+                otherwise
+                    error("Unknown modulation type!");
+            end
+        end
+
+        function calcWaveformDuration(this)
+            this.waveformDuration = length(this.wfStorage.getSamples()) / this.wfStorage.getSampleRate();
         end
 
         function plotPowerSpectrumDensity(this)
-
+            % plot(pow2db(abs(fftshift(fft(this.wfStorage.getSamples()))).^2));
+            [Pxx, w] = pwelch(this.wfStorage.getSamples());
+            Pxx = 10*log10(fftshift(Pxx));
+            figure;
+            plot(w, Pxx);
+            xlabel("Frequency, Hz");
+            ylabel("Power, dB");
+            grid on;
+            title("Power spectrum density");
         end
 
         function plotPayloadConstellation(this)
@@ -66,6 +106,13 @@ classdef WaveformAnalyzer < handle
 
         function setStorage(this, storageHandle)
             this.wfStorage = storageHandle;
+        end
+
+        function showAnalyzeResult(this)
+            fprintf("Mean Power: %f\n", this.waveformMeanPower);
+            fprintf("Channel Bandwidth: %f Hz\n", this.channelBandwidth);
+            fprintf("Modulation Type: %s\n", this.modulationType);
+            fprintf("Signal Duration: %f seconds\n", this.waveformDuration);
         end
     end
 end
