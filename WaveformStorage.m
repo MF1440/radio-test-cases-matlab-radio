@@ -1,10 +1,12 @@
 classdef WaveformStorage < handle
     properties
+        % Тут в соответствии с Code Guideline надо бы Nfft сделать nFFT или
+        % fftCount, но это будет вносить путаницу из-за 5G toolbox
         Nfft
-        SampleRate
-        CyclicPrefixLengths
-        SymbolLengths
-        SymbolsCount
+        sampleRate
+        cyclicPrefixLengths
+        symbolLengths
+        symbolsCount
         subCarriersCount
         payloadSymbols
         payloadSymbolsIdxs
@@ -18,13 +20,13 @@ classdef WaveformStorage < handle
             wfSamples = load(waveformPath, 'txWaveform');
             
             obj.Nfft = info.info.Nfft;
-            obj.CyclicPrefixLengths = info.info.CyclicPrefixLengths;
-            obj.SymbolLengths = info.info.SymbolLengths;
-            obj.SymbolsCount = info.info.symbolsCount;
+            obj.cyclicPrefixLengths = info.info.CyclicPrefixLengths;
+            obj.symbolLengths = info.info.SymbolLengths;
+            obj.symbolsCount = info.info.symbolsCount;
             obj.subCarriersCount = info.info.subCarriersCount;
             obj.payloadSymbols = info.info.payloadSymbols;
             obj.payloadSymbolsIdxs = info.info.payloadSymbolsIdxs;
-            obj.SampleRate = info.info.SampleRate;
+            obj.sampleRate = info.info.SampleRate;
 
             obj.waveformSamples = wfSamples.txWaveform;
         end
@@ -34,7 +36,7 @@ classdef WaveformStorage < handle
         end
 
         function sr = getSampleRate(obj)
-            sr = obj.SampleRate;
+            sr = obj.sampleRate;
         end
 
         function pls = getPayloadSymbols(obj)
@@ -50,4 +52,3 @@ classdef WaveformStorage < handle
         end
     end
 end
-

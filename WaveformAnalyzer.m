@@ -44,9 +44,11 @@ classdef WaveformAnalyzer < handle
 
     methods
         function this = WaveformAnalyzer(storage)
-            % Here I've decided to make some architecture change
-            % Since analyzer class should only analyze waveforms
-            % it should not store data but only reference to storage class
+            % Здесь было принято решение вынести хранение WF в отдельный
+            % класс
+            % Класс-анализатор WF не должен хранить данные
+            % Корректнее хранить данные в отдельном классе-хэндле
+            % и получать их по требованию различных классов
             this.wfStorage = storage;
         end
 
@@ -61,25 +63,26 @@ classdef WaveformAnalyzer < handle
             this.waveformMeanPower = ...
                                 mean(abs(this.wfStorage.getSamples().^2));
         end
-           
-        % !TODO: check if need to divide or multiply by 2
+        
         function calcChannelBandwidth(this)
             samplingRate = this.wfStorage.getSampleRate();
-            this.subcarrierSpacing = samplingRate / this.wfStorage.getNfft();
+            % this.subcarrierSpacing = samplingRate / this.wfStorage.getNfft();
             occupancy = this.wfStorage.getSubCarriersCount() / this.wfStorage.getNfft();
             this.channelBandwidth = samplingRate * occupancy;
         end
 
-        % !TODO: Temporary solution!
-        % Need to introduce other modulation patterns
+        % !TODO: Временное решение
+        % Возможно, необходимо проводить анализ на разные типы модуляций
         % PSK, QAM, APSK
         function estimateModulationType(this)
             uniquePtsCount = length(unique(this.wfStorage.getPayloadSymbols()));
             switch uniquePtsCount
                 case 16
-                    this.modulationType = "QAM-16";
+                    this.modulationType = ModulationType.QAM16;
                 case 64
-                    this.modulationType = "QAM64";
+                    this.modulationType = ModulationType.QAM64;
+                case 256
+                    this.modulationType = ModulationType.QAM256;
                 otherwise
                     error("Unknown modulation type!");
             end
@@ -96,7 +99,7 @@ classdef WaveformAnalyzer < handle
             figure;
             plot(w, pow2db(fftshift(Pxx)));
             xlabel("Frequency, Hz");
-            ylabel("Power density, dB/Hz");
+            ylabel("Power spectral density, dB/Hz");
             grid on;
             title("Power spectral density");
         end
