@@ -61,7 +61,7 @@ classdef WaveformAnalyzer < handle
 
         function calcMeanPower(this)
             this.waveformMeanPower = ...
-                                mean(abs(this.wfStorage.getSamples().^2));
+                                mean(abs(this.wfStorage.getSamples()).^2);
         end
         
         function calcChannelBandwidth(this)
@@ -97,8 +97,8 @@ classdef WaveformAnalyzer < handle
             [Pxx, w] = pwelch(this.wfStorage.getSamples(), [], [], [],...
                               this.wfStorage.getSampleRate());
             figure;
-            plot(w, pow2db(fftshift(Pxx)));
-            xlabel("Frequency, Hz");
+            plot(w ./ 1e6, pow2db(fftshift(Pxx)));
+            xlabel("Frequency, MHz");
             ylabel("Power spectral density, dB/Hz");
             grid on;
             title("Power spectral density");
@@ -118,7 +118,7 @@ classdef WaveformAnalyzer < handle
 
         function showAnalyzeResult(this)
             fprintf("Mean Power: %f\n", this.waveformMeanPower);
-            fprintf("Channel Bandwidth: %f Hz\n", this.channelBandwidth);
+            fprintf("Channel Bandwidth: %f MHz\n", this.channelBandwidth / 1e6);
             fprintf("Modulation Type: %s\n", this.modulationType);
             fprintf("Signal Duration: %f seconds\n", this.waveformDuration);
         end
