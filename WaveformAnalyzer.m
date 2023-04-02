@@ -44,6 +44,7 @@ classdef WaveformAnalyzer < handle
         
         waveformArray
         
+        powerSpectrumDensity
         rmsEvm
         waveformMeanPower
         channelBandwidth
@@ -81,6 +82,8 @@ classdef WaveformAnalyzer < handle
             this.channelBandwidth = this.subcarriersCount * deltaF;
             
             this.calcDopplerShift();
+            
+            this.calcPowerSpectrumDensity();
         end
         
         function calcDopplerShift(this)
@@ -106,15 +109,19 @@ classdef WaveformAnalyzer < handle
             this.dopplerShift = phase(averageVectorPhaseShiftPerSymbol) / (2 * pi * dT);
         end
         
-        function plotPowerSpectrumDensity(this)
+        function calcPowerSpectrumDensity(this)
             %             [pxx, f] = pwelch(this.waveformArray, [], [], [], this.sampleRate);
-            %             figure; plot(f, 10*log10(fftshift(pxx)));
-            
+            waveformFft = fftshift(fft(this.waveformArray) / (sqrt(2 * pi) * this.sampleRate));
+            waveformFftAbs2 = abs(waveformFft).^2;
+            this.powerSpectrumDensity = waveformFftAbs2 / this.waveformDuration;
+        end
+        
+        function plotPowerSpectrumDensity(this)
             waveformLength = length(this.waveformArray);
             waveformLengthDiv2 = waveformLength / 2;
             deltaF = this.sampleRate / waveformLength;
             xArray = (-waveformLengthDiv2:(waveformLengthDiv2-1)) * deltaF;
-            yArray = 10 * log10(abs(fftshift(fft(this.waveformArray) / (sqrt(2 * pi) * this.sampleRate))).^2 / this.waveformDuration);
+            yArray = 10 * log10(this.powerSpectrumDensity);
             figure; plot(xArray, yArray);
             title('Power Spectrum Density Plot')
             xlabel('Frequency, Hz')
