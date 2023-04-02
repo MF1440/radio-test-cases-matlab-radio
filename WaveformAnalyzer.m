@@ -76,11 +76,9 @@ classdef WaveformAnalyzer < handle
         end
         
         function calcWaveformParameters(this)
-            waveformLength = length((this.waveformArray));
-            this.waveformDuration = waveformLength / this.sampleRate;
+            this.calcWaveformDuration();
             
-            deltaF = this.sampleRate / this.fftCount;
-            this.channelBandwidth = this.subcarriersCount * deltaF;
+            this.calcChannelBandwidth();
             
             this.calcDopplerShift();
             
@@ -89,6 +87,16 @@ classdef WaveformAnalyzer < handle
             this.calcPayloadConstellation();
             
             this.calcWaveformMeanPower();
+        end
+        
+        function calcWaveformDuration(this) 
+            waveformLength = length((this.waveformArray));
+            this.waveformDuration = waveformLength / this.sampleRate;
+        end
+        
+        function calcChannelBandwidth(this)
+            deltaF = this.sampleRate / this.fftCount;
+            this.channelBandwidth = this.subcarriersCount * deltaF;
         end
         
         function calcDopplerShift(this)
