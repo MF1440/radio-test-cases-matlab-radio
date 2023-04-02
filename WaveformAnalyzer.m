@@ -87,6 +87,8 @@ classdef WaveformAnalyzer < handle
             this.calcPowerSpectrumDensity();
             
             this.calcPayloadConstellation();
+            
+            this.calcWaveformMeanPower();
         end
         
         function calcDopplerShift(this)
@@ -157,6 +159,11 @@ classdef WaveformAnalyzer < handle
         function plotPayloadConstellation(this)
             figure; scatterplot(this.payloadConstellationArray);
             title('Payload Constellation Array Plot')
+        end
+        
+        function calcWaveformMeanPower(this)
+            waveformPower = abs(this.waveformArray).^2;
+            this.waveformMeanPower = sum(waveformPower) / length(this.waveformArray);
         end
         
         function calcEvmPerformance(this)
