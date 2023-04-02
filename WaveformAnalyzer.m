@@ -72,25 +72,50 @@ classdef WaveformAnalyzer < handle
             
             this.waveformArray = waveformSource;
         end
-
+        
         function calcWaveformParameters(this)
-
+            waveformLength = length((this.waveformArray));
+            this.waveformDuration = waveformLength / this.sampleRate;
+            
+            deltaF = this.sampleRate / this.fftCount;
+            this.channelBandwidth = this.subcarriersCount * deltaF;
+            
+            this.calcDopplerShift();
         end
-
-        function calcdopplerSHift
-
+        
+        function calcDopplerShift(this)
+            offset = 0;
+            averageVectorPhaseShiftPerSymbol = complex(0, 0);
+            windowingOffset = this.windowing / 2;
+            for symbolIdx = 1:this.symbolsCount
+                leftPrefixIdx = offset + windowingOffset + 1;
+                rightPrefixIdx = offset + this.cyclicPrefixLengthArray(symbolIdx) - windowingOffset;
+                prefixData = this.waveformArray(leftPrefixIdx:rightPrefixIdx);
+                
+                leftSuffixIdx = leftPrefixIdx + this.fftCount;
+                rightSuffixIdx = rightPrefixIdx + this.fftCount;
+                suffixData = this.waveformArray(leftSuffixIdx:rightSuffixIdx);
+                
+                currentVectorPhaseShiftPerSymbol = sum(suffixData .* conj(prefixData));
+                averageVectorPhaseShiftPerSymbol = averageVectorPhaseShiftPerSymbol + currentVectorPhaseShiftPerSymbol;
+                
+                offset = offset + this.symbolLengthArray(symbolIdx);
+            end
+            
+            dT = this.fftCount / this.sampleRate;
+            this.dopplerShift = phase(averageVectorPhaseShiftPerSymbol) / (2 * pi * dT);
         end
-
+        
         function plotPowerSpectrumDensity(this)
 
         end
-
+        
         function plotPayloadConstellation(this)
 
         end
-
+        
         function calcEvmPerformance(this)
-
+            
         end
     end
 end

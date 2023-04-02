@@ -7,3 +7,4 @@ load('./waveform/waveformInfo.mat');
 load('./waveform/waveformSource.mat');
 
 waveformAnalyzer = WaveformAnalyzer(info, rxWaveform);
+waveformAnalyzer.calcWaveformParameters();
