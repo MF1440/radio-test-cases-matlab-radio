@@ -28,21 +28,49 @@ classdef WaveformAnalyzer < handle
     %       modulationType    - тип модуляционной схемы
     %       waveformDuration  - длина анализируемого сигнала
     %
-
+    
     properties
+        fftCount
+        sampleRate
+        cyclicPrefixLengthArray
+        symbolLengthArray
+        windowing
+        symbolPhaseArray
+        symbolPerSlotArray
+        symbolsCount
+        payloadSymbolArray
+        subcarriersCount
+        payloadSymbolsIdxArray
+        
+        waveformArray
+        
         rmsEvm
         waveformMeanPower
         channelBandwidth
         noiseMeanPower
         modulationType
         waveformDuration
-        dopplershift
+        dopplerShift
     end
-
+    
     methods
-        function this = WaveformAnalyzer()
+        function this = WaveformAnalyzer(waveformInfo, waveformSource)
             % Конструктор класса. Чтение waveform-ы во временной области и структуры с информацией
             % необходимой для дальнейшей обработки данных и заполнения полей класса
+            
+            this.fftCount = waveformInfo.Nfft;
+            this.sampleRate = waveformInfo.SampleRate;
+            this.cyclicPrefixLengthArray = waveformInfo.CyclicPrefixLengths;
+            this.symbolLengthArray = waveformInfo.SymbolLengths;
+            this.windowing = waveformInfo.Windowing;
+            this.symbolPhaseArray = waveformInfo.SymbolPhases;
+            this.symbolPerSlotArray = waveformInfo.SymbolsPerSlot;
+            this.symbolsCount = waveformInfo.symbolsCount;
+            this.payloadSymbolArray = waveformInfo.payloadSymbols;
+            this.subcarriersCount = waveformInfo.subCarriersCount;
+            this.payloadSymbolsIdxArray = waveformInfo.payloadSymbolsIdxs;
+            
+            this.waveformArray = waveformSource;
         end
 
         function calcWaveformParameters(this)
