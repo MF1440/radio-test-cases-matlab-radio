@@ -44,6 +44,7 @@ classdef WaveformAnalyzer < handle
         
         waveformArray
         
+        payloadConstellationArray
         powerSpectrumDensity
         rmsEvm
         waveformMeanPower
@@ -84,6 +85,8 @@ classdef WaveformAnalyzer < handle
             this.calcDopplerShift();
             
             this.calcPowerSpectrumDensity();
+            
+            this.calcPayloadConstellation();
         end
         
         function calcDopplerShift(this)
@@ -105,8 +108,8 @@ classdef WaveformAnalyzer < handle
                 offset = offset + this.symbolLengthArray(symbolIdx);
             end
             
-            dT = this.fftCount / this.sampleRate;
-            this.dopplerShift = phase(averageVectorPhaseShiftPerSymbol) / (2 * pi * dT);
+            tau = this.fftCount / this.sampleRate;
+            this.dopplerShift = phase(averageVectorPhaseShiftPerSymbol) / (2 * pi * tau);
         end
         
         function calcPowerSpectrumDensity(this)
@@ -128,8 +131,32 @@ classdef WaveformAnalyzer < handle
             ylabel('PSD, dB/Hz')
         end
         
+        function calcPayloadConstellation(this)
+            deltaPhy = -this.dopplerShift / this.sampleRate ;
+            offsetWaveform = 0;
+            leftDemodulatedIdx = (this.fftCount - this.subcarriersCount) / 2 + 1;
+            rightDemodulatedIdx = leftDemodulatedIdx + this.subcarriersCount - 1;
+            
+            constellationArray = zeros(1, this.subcarriersCount * this.symbolsCount);
+            for symbolIdx = 1:this.symbolsCount
+                correctedSymbol = this.waveformArray(offsetWaveform + (1:this.symbolLengthArray(symbolIdx))) ...
+                    .* exp(1i * 2 * pi * deltaPhy * (offsetWaveform + (1:(this.symbolLengthArray(symbolIdx))))).' ...
+                    .* exp(1i * 2 * pi * -this.symbolPhaseArray(symbolIdx));
+                demodulatedSymbol = ofdmdemod(correctedSymbol, this.fftCount, this.cyclicPrefixLengthArray(symbolIdx), this.windowing/2);
+                demodulatedSymbol = demodulatedSymbol(leftDemodulatedIdx:rightDemodulatedIdx).';
+                leftSubcarrierIdx = (symbolIdx - 1) * this.subcarriersCount + 1;
+                rightSubcarrierIdx = leftSubcarrierIdx + this.subcarriersCount - 1;
+                constellationArray(leftSubcarrierIdx:rightSubcarrierIdx) = demodulatedSymbol;
+                
+                offsetWaveform = offsetWaveform + this.symbolLengthArray(symbolIdx);
+            end
+            
+            this.payloadConstellationArray = constellationArray(this.payloadSymbolsIdxArray);
+        end
+        
         function plotPayloadConstellation(this)
-
+            figure; scatterplot(this.payloadConstellationArray);
+            title('Payload Constellation Array Plot')
         end
         
         function calcEvmPerformance(this)
