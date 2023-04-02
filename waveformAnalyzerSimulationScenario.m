@@ -8,3 +8,4 @@ load('./waveform/waveformSource.mat');
 
 waveformAnalyzer = WaveformAnalyzer(info, rxWaveform);
 waveformAnalyzer.calcWaveformParameters();
+waveformAnalyzer.plotPowerSpectrumDensity();

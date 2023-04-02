@@ -107,7 +107,18 @@ classdef WaveformAnalyzer < handle
         end
         
         function plotPowerSpectrumDensity(this)
-
+            %             [pxx, f] = pwelch(this.waveformArray, [], [], [], this.sampleRate);
+            %             figure; plot(f, 10*log10(fftshift(pxx)));
+            
+            waveformLength = length(this.waveformArray);
+            waveformLengthDiv2 = waveformLength / 2;
+            deltaF = this.sampleRate / waveformLength;
+            xArray = (-waveformLengthDiv2:(waveformLengthDiv2-1)) * deltaF;
+            yArray = 10 * log10(abs(fftshift(fft(this.waveformArray) / (sqrt(2 * pi) * this.sampleRate))).^2 / this.waveformDuration);
+            figure; plot(xArray, yArray);
+            title('Power Spectrum Density Plot')
+            xlabel('Frequency, Hz')
+            ylabel('PSD, dB/Hz')
         end
         
         function plotPayloadConstellation(this)
