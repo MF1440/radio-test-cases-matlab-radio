@@ -157,23 +157,48 @@ classdef WaveformAnalyzer < handle
         end
         
         function calcPayloadConstellation(this)
-            deltaPhy = -this.dopplerShift / this.sampleRate ;
+            deltaPhase = this.dopplerShift / this.sampleRate ;
             offsetWaveform = 0;
             leftDemodulatedIdx = (this.fftCount - this.subcarriersCount) / 2 + 1;
             rightDemodulatedIdx = leftDemodulatedIdx + this.subcarriersCount - 1;
             
             constellationArray = zeros(1, this.subcarriersCount * this.symbolsCount);
+            previousPhase = 0;
+            
+            idxPayload = 1;
+
             for symbolIdx = 1:this.symbolsCount
+                currentPhaseArray = previousPhase - 2 * pi * deltaPhase * (0:(this.symbolLengthArray(symbolIdx)-1));
                 correctedSymbol = this.waveformArray(offsetWaveform + (1:this.symbolLengthArray(symbolIdx))) ...
-                    .* exp(1i * 2 * pi * deltaPhy * (offsetWaveform + (1:(this.symbolLengthArray(symbolIdx))))).' ...
+                    .* exp(1i * currentPhaseArray).'...
                     .* exp(1i * 2 * pi * -this.symbolPhaseArray(symbolIdx));
+                offsetWaveform = offsetWaveform + this.symbolLengthArray(symbolIdx);
+                
                 demodulatedSymbol = ofdmdemod(correctedSymbol, this.fftCount, this.cyclicPrefixLengthArray(symbolIdx), this.windowing/2);
                 demodulatedSymbol = demodulatedSymbol(leftDemodulatedIdx:rightDemodulatedIdx).';
+                                
+                %% 
+                rotatedSymbol = [];
+                for i = 1:length(demodulatedSymbol)
+                    if ((symbolIdx - 1) * this.subcarriersCount + i) == this.payloadSymbolsIdxArray(idxPayload)
+                        softDecision = demodulatedSymbol(i);
+                        compareRe = abs(this.constellationGrid - real(softDecision));
+                        compareIm = abs(this.constellationGrid - imag(softDecision));
+                        [~, idxRe] = min(compareRe);
+                        [~, idxIm] = min(compareIm);
+                        rotVal = complex(this.constellationGrid(idxRe), this.constellationGrid(idxIm));
+                        rotatedSymbol = [rotatedSymbol softDecision*conj(rotVal)];
+                        idxPayload = idxPayload + 1;
+                    end
+                end
+                
+                averageRotVectorShift = sum(rotatedSymbol);
+                constellationPhase = angle(averageRotVectorShift);
+                previousPhase = currentPhaseArray(end) - constellationPhase;
+
                 leftSubcarrierIdx = (symbolIdx - 1) * this.subcarriersCount + 1;
                 rightSubcarrierIdx = leftSubcarrierIdx + this.subcarriersCount - 1;
-                constellationArray(leftSubcarrierIdx:rightSubcarrierIdx) = demodulatedSymbol;
-                
-                offsetWaveform = offsetWaveform + this.symbolLengthArray(symbolIdx);
+                constellationArray(leftSubcarrierIdx:rightSubcarrierIdx) = demodulatedSymbol*exp(-1i*constellationPhase);
             end
             
             this.payloadConstellationArray = constellationArray(this.payloadSymbolsIdxArray);
