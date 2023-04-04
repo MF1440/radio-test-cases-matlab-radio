@@ -53,6 +53,7 @@ classdef WaveformAnalyzer < handle
         modulationType
         waveformDuration
         dopplerShift
+        constellationGrid
     end
     
     methods
@@ -73,6 +74,20 @@ classdef WaveformAnalyzer < handle
             this.payloadSymbolsIdxArray = waveformInfo.payloadSymbolsIdxs;
             
             this.waveformArray = waveformSource;
+            
+            switch waveformInfo.modulationType
+                case 'BPSK'
+                    % TODO:
+                case 'QPSK'
+                    % TODO:
+                case 'QAM-16'
+                    % TODO:
+                case 'QAM-64'     
+                    this.modulationType = waveformInfo.modulationType;
+                    this.constellationGrid = [-7,-5,-3,-1,1,3,5,7] / sqrt(42);
+                case 'QAM-256'
+                    % TODO:
+            end
         end
         
         function calcWaveformParameters(this)
@@ -89,7 +104,7 @@ classdef WaveformAnalyzer < handle
             this.calcWaveformMeanPower();
         end
         
-        function calcWaveformDuration(this) 
+        function calcWaveformDuration(this)
             waveformLength = length((this.waveformArray));
             this.waveformDuration = waveformLength / this.sampleRate;
         end
@@ -119,7 +134,7 @@ classdef WaveformAnalyzer < handle
             end
             
             tau = this.fftCount / this.sampleRate;
-            this.dopplerShift = phase(averageVectorPhaseShiftPerSymbol) / (2 * pi * tau);
+            this.dopplerShift = angle(averageVectorPhaseShiftPerSymbol) / (2 * pi * tau);
         end
         
         function calcPowerSpectrumDensity(this)
