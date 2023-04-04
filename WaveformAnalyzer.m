@@ -92,30 +92,48 @@ classdef WaveformAnalyzer < handle
         
         function calcWaveformParameters(this)
             this.calcWaveformDuration();
-            
             this.calcChannelBandwidth();
-            
             this.calcDopplerShift();
-            
             this.calcPowerSpectrumDensity();
-            
             this.calcPayloadConstellation();
-            
             this.calcWaveformMeanPower();
-            
             this.calcEvmPerformance();
         end
         
+        
+        function plotPowerSpectrumDensity(this)
+            waveformLength = length(this.waveformArray);
+            waveformLengthDiv2 = waveformLength / 2;
+            deltaF = this.sampleRate / waveformLength;
+            xArray = (-waveformLengthDiv2:(waveformLengthDiv2-1)) * deltaF;
+            yArray = 10 * log10(this.powerSpectrumDensity);
+            figure; plot(xArray, yArray);
+            title('Power Spectrum Density Plot')
+            xlabel('Frequency, Hz')
+            ylabel('PSD, dB/Hz')
+        end
+        
+        function plotPayloadConstellation(this)
+            scatterplot(this.payloadConstellationArray);
+            title('Payload Constellation Array Plot')
+        end
+        
+    end
+    
+    methods(Access = private)
+        %%
         function calcWaveformDuration(this)
             waveformLength = length((this.waveformArray));
             this.waveformDuration = waveformLength / this.sampleRate;
         end
         
+        %%
         function calcChannelBandwidth(this)
             deltaF = this.sampleRate / this.fftCount;
             this.channelBandwidth = this.subcarriersCount * deltaF;
         end
         
+        %%
         function calcDopplerShift(this)
             offset = 0;
             averageVectorPhaseShiftPerSymbol = complex(0, 0);
@@ -139,6 +157,7 @@ classdef WaveformAnalyzer < handle
             this.dopplerShift = angle(averageVectorPhaseShiftPerSymbol) / (2 * pi * tau);
         end
         
+        %%
         function calcPowerSpectrumDensity(this)
             %             [pxx, f] = pwelch(this.waveformArray, [], [], [], this.sampleRate);
             waveformFft = fftshift(fft(this.waveformArray) / (sqrt(2 * pi) * this.sampleRate));
@@ -146,18 +165,7 @@ classdef WaveformAnalyzer < handle
             this.powerSpectrumDensity = waveformFftAbs2 / this.waveformDuration;
         end
         
-        function plotPowerSpectrumDensity(this)
-            waveformLength = length(this.waveformArray);
-            waveformLengthDiv2 = waveformLength / 2;
-            deltaF = this.sampleRate / waveformLength;
-            xArray = (-waveformLengthDiv2:(waveformLengthDiv2-1)) * deltaF;
-            yArray = 10 * log10(this.powerSpectrumDensity);
-            figure; plot(xArray, yArray);
-            title('Power Spectrum Density Plot')
-            xlabel('Frequency, Hz')
-            ylabel('PSD, dB/Hz')
-        end
-        
+        %%
         function calcPayloadConstellation(this)
             deltaPhase = this.dopplerShift / this.sampleRate ;
             offsetWaveform = 0;
@@ -206,17 +214,12 @@ classdef WaveformAnalyzer < handle
             
             this.payloadConstellationArray = constellationArray(this.payloadSymbolsIdxArray);
         end
-        
-        function plotPayloadConstellation(this)
-            scatterplot(this.payloadConstellationArray);
-            title('Payload Constellation Array Plot')
-        end
-        
+        %%
         function calcWaveformMeanPower(this)
             waveformPower = abs(this.waveformArray).^2;
             this.waveformMeanPower = sum(waveformPower) / length(this.waveformArray);
         end
-        
+        %%
         function calcEvmPerformance(this)
             err = 0;
             for i = 1:length(this.payloadConstellationArray)
@@ -226,7 +229,7 @@ classdef WaveformAnalyzer < handle
                 err = err + (errRe^2 + errIm^2);
             end
             
-            this.rmsEvm = sqrt(err / length(this.payloadConstellationArray));  
+            this.rmsEvm = sqrt(err / length(this.payloadConstellationArray));
         end
     end
 end
