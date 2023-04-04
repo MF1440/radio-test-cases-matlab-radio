@@ -82,7 +82,7 @@ classdef WaveformAnalyzer < handle
                     % TODO:
                 case 'QAM-16'
                     % TODO:
-                case 'QAM-64'     
+                case 'QAM-64'
                     this.modulationType = waveformInfo.modulationType;
                     this.constellationGrid = [-7,-5,-3,-1,1,3,5,7] / sqrt(42);
                 case 'QAM-256'
@@ -102,6 +102,8 @@ classdef WaveformAnalyzer < handle
             this.calcPayloadConstellation();
             
             this.calcWaveformMeanPower();
+            
+            this.calcEvmPerformance();
         end
         
         function calcWaveformDuration(this)
@@ -166,7 +168,7 @@ classdef WaveformAnalyzer < handle
             previousPhase = 0;
             
             idxPayload = 1;
-
+            
             for symbolIdx = 1:this.symbolsCount
                 currentPhaseArray = previousPhase - 2 * pi * deltaPhase * (0:(this.symbolLengthArray(symbolIdx)-1));
                 correctedSymbol = this.waveformArray(offsetWaveform + (1:this.symbolLengthArray(symbolIdx))) ...
@@ -176,8 +178,8 @@ classdef WaveformAnalyzer < handle
                 
                 demodulatedSymbol = ofdmdemod(correctedSymbol, this.fftCount, this.cyclicPrefixLengthArray(symbolIdx), this.windowing/2);
                 demodulatedSymbol = demodulatedSymbol(leftDemodulatedIdx:rightDemodulatedIdx).';
-                                
-                %% 
+                
+                %%
                 rotatedSymbol = [];
                 for i = 1:length(demodulatedSymbol)
                     if ((symbolIdx - 1) * this.subcarriersCount + i) == this.payloadSymbolsIdxArray(idxPayload)
@@ -195,7 +197,8 @@ classdef WaveformAnalyzer < handle
                 averageRotVectorShift = sum(rotatedSymbol);
                 constellationPhase = angle(averageRotVectorShift);
                 previousPhase = currentPhaseArray(end) - constellationPhase;
-
+                
+                %%
                 leftSubcarrierIdx = (symbolIdx - 1) * this.subcarriersCount + 1;
                 rightSubcarrierIdx = leftSubcarrierIdx + this.subcarriersCount - 1;
                 constellationArray(leftSubcarrierIdx:rightSubcarrierIdx) = demodulatedSymbol*exp(-1i*constellationPhase);
@@ -205,7 +208,7 @@ classdef WaveformAnalyzer < handle
         end
         
         function plotPayloadConstellation(this)
-            figure; scatterplot(this.payloadConstellationArray);
+            scatterplot(this.payloadConstellationArray);
             title('Payload Constellation Array Plot')
         end
         
@@ -215,7 +218,15 @@ classdef WaveformAnalyzer < handle
         end
         
         function calcEvmPerformance(this)
+            err = 0;
+            for i = 1:length(this.payloadConstellationArray)
+                softDecision = this.payloadConstellationArray(i);
+                errRe = min(abs(this.constellationGrid - real(softDecision)));
+                errIm = min(abs(this.constellationGrid - imag(softDecision)));
+                err = err + (errRe^2 + errIm^2);
+            end
             
+            this.rmsEvm = sqrt(err / length(this.payloadConstellationArray));  
         end
     end
 end
