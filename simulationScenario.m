@@ -37,3 +37,15 @@ beamformerObjects = [beamformerObject1, beamformerObject2];
 
 % Вывод зависимостей спектральной эффективности от ОСШ
 beamformerObjects.vuzailizeSpectralPerformance
+
+% Создание класса анализатора сигнала
+wa = WaveformAnalyzer();
+
+% Вычисление параметров сигнала
+wa.calcWaveformParameters
+
+% Вывод параметров на экран
+fprintf("duration: %d s\n", wa.waveformDuration)
+fprintf("mean power: %d\n", wa.waveformMeanPower)
+fprintf("QAM modulation type: %d\n", wa.modulationType)
+fprintf("Channel BW: %d Hz\n", wa.channelBandwidth)
