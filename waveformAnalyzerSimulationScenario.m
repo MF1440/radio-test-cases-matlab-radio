@@ -1,4 +1,4 @@
-% Скрипт для запуска waveformAnalyxer
+% Скрипт для запуска waveformAnalyzer
 clc
 clear
 addpath waveform/
@@ -8,14 +8,14 @@ waveformAnalyzerObject = WaveformAnalyzer('waveformSource.mat', 'waveformInfo.ma
 
 % вычисляем параметры сигнала
 waveformAnalyzerObject.calcWaveformParameters();
-sprintf('waveformMeanPower: %f',waveformAnalyzerObject.waveformMeanPower)
-sprintf('channelBandwidth_Hz: %9.0f',waveformAnalyzerObject.channelBandwidth_Hz)
+sprintf('waveformMeanPower: %f', waveformAnalyzerObject.waveformMeanPower)
+sprintf('channelBandwidthHz: %9.0f', waveformAnalyzerObject.channelBandwidthHz)
 sprintf('modulationType: %s', waveformAnalyzerObject.modulationType)
-sprintf('waveformDuration_mcs: %f', waveformAnalyzerObject.waveformDuration_mcs)
+sprintf('waveformDurationMcs: %f', waveformAnalyzerObject.waveformDurationMcs)
 
 % вычисляем доплеровский сдвиг 
 waveformAnalyzerObject.calcDopplerShift();
-sprintf('dopplerShift_Hz: %5.1f',waveformAnalyzerObject.dopplerShift_Hz)
+sprintf('dopplerShiftHz: %5.1f', waveformAnalyzerObject.dopplerShiftHz)
 
 % вывод графика спектральной плотности мощности
 waveformAnalyzerObject.plotPowerSpectrumDensity();
