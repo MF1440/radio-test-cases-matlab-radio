@@ -56,18 +56,18 @@ classdef WaveformAnalyzer < handle
         function calcWaveformParameters(this)
             
             % вычисление средней мощности сигнала
-            this.waveformMeanPower = mean(abs(this.waveformSource).^2);
+            this.waveformMeanPower = mean(abs(this.waveformSource) .^ 2);
             
             % вычисление разноса между поднесущими в Гц
-            subCarrierBandwidthHz = this.waveformInfo.SampleRate/this.waveformInfo.Nfft;
+            subCarrierBandwidthHz = this.waveformInfo.SampleRate / this.waveformInfo.Nfft;
             % вычисление полосы канала в Гц
-            this.channelBandwidthHz = subCarrierBandwidthHz*this.waveformInfo.subCarriersCount;
+            this.channelBandwidthHz = subCarrierBandwidthHz * this.waveformInfo.subCarriersCount;
             
             % определяем тип модуляции
             this.modulationType = this.getModulationType();
                        
             % вычисление длительности сигнала в мкс 
-            this.waveformDurationMcs = length(this.waveformSource)/this.waveformInfo.SampleRate*1e6;
+            this.waveformDurationMcs = length(this.waveformSource) / this.waveformInfo.SampleRate * 1e6;
             
             
         end
@@ -83,14 +83,14 @@ classdef WaveformAnalyzer < handle
             
             % вычисляем ошибку для разных видов модуляции
             % между исходными payloadSymbols и проверочными символами для разных видов модуляции 
-            payloadQAM4Check = qammod(qamdemod(this.waveformInfo.payloadSymbols,4,'UnitAveragePower',true),4,'UnitAveragePower',true);
-            errs(1) = mean(abs(payloadQAM4Check-this.waveformInfo.payloadSymbols));
-            payloadQAM16Check = qammod(qamdemod(this.waveformInfo.payloadSymbols,16,'UnitAveragePower',true),16,'UnitAveragePower',true);
-            errs(2) = mean(abs(payloadQAM16Check-this.waveformInfo.payloadSymbols));
-            payloadQAM64Check = qammod(qamdemod(this.waveformInfo.payloadSymbols,64,'UnitAveragePower',true),64,'UnitAveragePower',true);
-            errs(3) = mean(abs(payloadQAM64Check-this.waveformInfo.payloadSymbols));
-            payloadQAM256Check = qammod(qamdemod(this.waveformInfo.payloadSymbols,256,'UnitAveragePower',true),256,'UnitAveragePower',true);
-            errs(4) = mean(abs(payloadQAM256Check-this.waveformInfo.payloadSymbols));
+            payloadQAM4Check = qammod(qamdemod(this.waveformInfo.payloadSymbols, 4, 'UnitAveragePower', true), 4, 'UnitAveragePower', true);
+            errs(1) = mean(abs(payloadQAM4Check - this.waveformInfo.payloadSymbols));
+            payloadQAM16Check = qammod(qamdemod(this.waveformInfo.payloadSymbols, 16, 'UnitAveragePower', true), 16, 'UnitAveragePower', true);
+            errs(2) = mean(abs(payloadQAM16Check - this.waveformInfo.payloadSymbols));
+            payloadQAM64Check = qammod(qamdemod(this.waveformInfo.payloadSymbols, 64, 'UnitAveragePower', true), 64, 'UnitAveragePower', true);
+            errs(3) = mean(abs(payloadQAM64Check - this.waveformInfo.payloadSymbols));
+            payloadQAM256Check = qammod(qamdemod(this.waveformInfo.payloadSymbols, 256, 'UnitAveragePower', true), 256, 'UnitAveragePower', true);
+            errs(4) = mean(abs(payloadQAM256Check - this.waveformInfo.payloadSymbols));
             
             % определяем модуляцию по минимуму ошибки
             [minError, minErrorIndx] = min(errs);
@@ -105,19 +105,19 @@ classdef WaveformAnalyzer < handle
             
             cpLength = this.waveformInfo.CyclicPrefixLengths(1);
             % отсчеты префикса
-            cp = this.waveformSource(1:cpLength);
+            cp = this.waveformSource(1 : cpLength);
             % отсчеты символа
-            ofdm = this.waveformSource(cpLength+1:this.waveformInfo.SymbolLengths(1));
+            ofdm = this.waveformSource(cpLength + 1 : this.waveformInfo.SymbolLengths(1));
             
             % вычисляем набег фазы для каждого отсчета
-            dphi = angle(ofdm(end-cpLength+1:end).*conj(cp));
+            dphi = angle(ofdm(end - cpLength + 1 : end) .* conj(cp));
             % усредняем по всем отсчетам
-            meanDPhi = mean(dphi(1:end-this.waveformInfo.Windowing));
+            meanDPhi = mean(dphi(1 : end - this.waveformInfo.Windowing));
             % вычисляем длительность OFDM символа в сек.
-            durOFDMSec = this.waveformInfo.Nfft/this.waveformInfo.SampleRate;   
+            durOFDMSec = this.waveformInfo.Nfft / this.waveformInfo.SampleRate;   
             
             % вычисление частоты доплеровского сдвига
-            this.dopplerShiftHz = (meanDPhi/durOFDMSec)/(2*pi);
+            this.dopplerShiftHz = (meanDPhi / durOFDMSec) / (2 * pi);
         end
 
         function plotPowerSpectrumDensity(this)
@@ -127,10 +127,10 @@ classdef WaveformAnalyzer < handle
             % суммарной мощностью во временной области
             
             fftSmplCount = length(this.waveformSource);
-            waveformFFT = fftshift(fft(this.waveformSource)./sqrt(fftSmplCount));
-            waveformPowerDensityDB = 20*log10(abs(waveformFFT));
-            freq = (0:fftSmplCount-1)-fftSmplCount/2;
-            freq = freq.*(this.waveformInfo.SampleRate/1000000/fftSmplCount);
+            waveformFFT = fftshift(fft(this.waveformSource) ./ sqrt(fftSmplCount));
+            waveformPowerDensityDB = 20 * log10(abs(waveformFFT));
+            freq = (0 : fftSmplCount - 1) - fftSmplCount / 2;
+            freq = freq .* (this.waveformInfo.SampleRate / 1000000 / fftSmplCount);
             plot(freq, waveformPowerDensityDB);
             title('Power Spectrum Density');
             xlabel('Freq, MHz');
