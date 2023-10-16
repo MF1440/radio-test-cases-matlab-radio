@@ -127,7 +127,13 @@ classdef WaveformAnalyzer < handle
             % суммарной мощностью во временной области
             
             fftSmplCount = length(this.waveformSource);
-            waveformFFT = fftshift(fft(this.waveformSource) ./ sqrt(fftSmplCount));
+            % формируем окно для устранения пульсаций в спектре 
+            winForFFT = blackmanharris(fftSmplCount);
+            % нормируем окно для сохранения размерности мощности   
+            winForFFT = winForFFT ./ sqrt(mean(winForFFT .^ 2));
+            % накладываем окно на сигнал и вычисляем фурье
+            waveformFFT = fftshift(fft(this.waveformSource .* winForFFT) ./ sqrt(fftSmplCount));
+            % вычисляем плотность мощности в дБ
             waveformPowerDensityDB = 20 * log10(abs(waveformFFT));
             freq = (0 : fftSmplCount - 1) - fftSmplCount / 2;
             freq = freq .* (this.waveformInfo.SampleRate / 1000000 / fftSmplCount);
