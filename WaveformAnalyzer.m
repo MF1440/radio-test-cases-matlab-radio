@@ -37,11 +37,11 @@ classdef WaveformAnalyzer < handle
     properties
         rmsEvm
         waveformMeanPower
-        channelBandwidth_Hz
+        channelBandwidthHz
         noiseMeanPower
         modulationType
-        waveformDuration_mcs
-        dopplerShift_Hz
+        waveformDurationMcs
+        dopplerShiftHz
     end
 
     methods
@@ -59,15 +59,15 @@ classdef WaveformAnalyzer < handle
             this.waveformMeanPower = mean(abs(this.waveformSource).^2);
             
             % вычисление разноса между поднесущими в Гц
-            subCarrierBandwidth_Hz = this.waveformInfo.SampleRate/this.waveformInfo.Nfft;
+            subCarrierBandwidthHz = this.waveformInfo.SampleRate/this.waveformInfo.Nfft;
             % вычисление полосы канала в Гц
-            this.channelBandwidth_Hz = subCarrierBandwidth_Hz*this.waveformInfo.subCarriersCount;
+            this.channelBandwidthHz = subCarrierBandwidthHz*this.waveformInfo.subCarriersCount;
             
             % определяем тип модуляции
             this.modulationType = this.getModulationType();
                        
             % вычисление длительности сигнала в мкс 
-            this.waveformDuration_mcs = length(this.waveformSource)/this.waveformInfo.SampleRate*1e6;
+            this.waveformDurationMcs = length(this.waveformSource)/this.waveformInfo.SampleRate*1e6;
             
             
         end
@@ -114,10 +114,10 @@ classdef WaveformAnalyzer < handle
             % усредняем по всем отсчетам
             meanDPhi = mean(dphi(1:end-this.waveformInfo.Windowing));
             % вычисляем длительность OFDM символа в сек.
-            durOFDM_s = this.waveformInfo.Nfft/this.waveformInfo.SampleRate;   
+            durOFDMSec = this.waveformInfo.Nfft/this.waveformInfo.SampleRate;   
             
             % вычисление частоты доплеровского сдвига
-            this.dopplerShift_Hz = (meanDPhi/durOFDM_s)/(2*pi);
+            this.dopplerShiftHz = (meanDPhi/durOFDMSec)/(2*pi);
         end
 
         function plotPowerSpectrumDensity(this)
@@ -128,10 +128,10 @@ classdef WaveformAnalyzer < handle
             
             fftSmplCount = length(this.waveformSource);
             waveformFFT = fftshift(fft(this.waveformSource)./sqrt(fftSmplCount));
-            waveformPowerDensity_dB = 20*log10(abs(waveformFFT));
+            waveformPowerDensityDB = 20*log10(abs(waveformFFT));
             freq = (0:fftSmplCount-1)-fftSmplCount/2;
             freq = freq.*(this.waveformInfo.SampleRate/1000000/fftSmplCount);
-            plot(freq, waveformPowerDensity_dB);
+            plot(freq, waveformPowerDensityDB);
             title('Power Spectrum Density');
             xlabel('Freq, MHz');
             ylabel('Power Density, dB');
