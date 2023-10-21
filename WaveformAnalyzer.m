@@ -102,7 +102,8 @@ classdef WaveformAnalyzer < handle
 
         function calcChannelBandwidth(this)
             % Метод класса, реализующий расчет ширины полосы канала.
-
+            subCarrierBandwidth = this.sampleRate / this.fftSize;
+            this.channelBandwidth = this.subcarriersCount * subCarrierBandwidth;
         end
 
         function calcModulationType(this)

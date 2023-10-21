@@ -14,7 +14,7 @@ waveformAnalyzerObj = WaveformAnalyzer(waveform, info);
 waveformAnalyzerObj.calcWaveformParameters();
 fprintf('Waveform Parameters: \n');
 fprintf('Mean Power: %f \n', waveformAnalyzerObj.waveformMeanPower);
-fprintf('Bandwidth: %f Hz \n', waveformAnalyzerObj.channelBandwidth);
+fprintf('Bandwidth: %.0f Hz \n', waveformAnalyzerObj.channelBandwidth);
 fprintf('Modulation Type: %s \n', waveformAnalyzerObj.modulationType);
 fprintf('Duration: %f mcs \n', waveformAnalyzerObj.waveformDuration*1000*1000);
 fprintf('Doppler Shift: %f Hz \n', waveformAnalyzerObj.dopplerShift);
