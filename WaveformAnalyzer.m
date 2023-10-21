@@ -97,7 +97,7 @@ classdef WaveformAnalyzer < handle
 
         function calcWaveformMeanPower(this)
             % Метод класса, реализующий расчет среднеквадратичного значения мощности сигнала.
-
+            this.waveformMeanPower = mean(abs(this.sampleArray).^2);
         end
 
         function calcChannelBandwidth(this)
