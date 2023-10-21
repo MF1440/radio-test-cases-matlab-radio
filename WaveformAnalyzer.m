@@ -84,7 +84,19 @@ classdef WaveformAnalyzer < handle
 
         function plotPowerSpectrumDensity(this)
             % Метод класса, реализующий вывод спектральной плотности средней мощности в частотной области.
-
+            
+            % Преобразование Фурье сигнала
+            signalFft = fftshift(fft(this.sampleArray));
+            % Вычисление спектральной плотности мощности
+            powerDensity = 10*log10(abs(signalFft).^2); 
+            % Формирование частотной сетки
+            sampleLength = length(this.sampleArray);
+            freqArray = (-sampleLength/2:sampleLength/2-1)*(this.sampleRate/sampleLength);
+           
+            plot(freqArray, powerDensity);
+            title('Power Spectrum Density');
+            xlabel('Frequency, MHz');
+            ylabel('Power Spectrum Density, dB');
         end
 
         function plotPayloadConstellation(this)
@@ -123,7 +135,7 @@ classdef WaveformAnalyzer < handle
 
         function calcEvmPerformance(this)
             % Метод класса, реализующий расчет среднеквадратичное значение модуля вектора ошибки.
-
+            
         end
     end
 end
