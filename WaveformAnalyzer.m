@@ -27,7 +27,7 @@ classdef WaveformAnalyzer < handle
     %       noiseMeanPower    - среднеквадратичное значение мощности шума
     %       modulationType    - тип модуляционной схемы
     %       waveformDuration  - длина анализируемого сигнала
-    %
+    %       dopplerShift      - Допплеровский сдвиг частоты
 
     properties
         rmsEvm
@@ -36,32 +36,92 @@ classdef WaveformAnalyzer < handle
         noiseMeanPower
         modulationType
         waveformDuration
-        dopplershift
+        dopplerShift
+    end
+
+    properties (Access = private)
+        fftSize
+        sampleRate
+        cyclicPrefixLengthArray
+        symbolLengthArray
+        windowing
+        symbolPhaseArray
+        symbolPerSlotArray
+        symbolsCount
+        payloadSymbolArray
+        subcarriersCount
+        payloadSymbolsIdxArray
+        sampleArray
     end
 
     methods
-        function this = WaveformAnalyzer()
+        function this = WaveformAnalyzer(waveformData, waveformInfo)
             % Конструктор класса. Чтение waveform-ы во временной области и структуры с информацией
             % необходимой для дальнейшей обработки данных и заполнения полей класса
+            this.fftSize                    = waveformInfo.Nfft;
+            this.sampleRate                 = waveformInfo.SampleRate;
+            this.cyclicPrefixLengthArray    = waveformInfo.CyclicPrefixLengths;
+            this.symbolLengthArray          = waveformInfo.SymbolLengths;
+            this.windowing                  = waveformInfo.Windowing;
+            this.symbolPhaseArray           = waveformInfo.SymbolPhases;
+            this.symbolPerSlotArray         = waveformInfo.SymbolsPerSlot;
+            this.symbolsCount               = waveformInfo.symbolsCount;
+            this.payloadSymbolArray         = waveformInfo.payloadSymbols;
+            this.subcarriersCount           = waveformInfo.subCarriersCount;
+            this.payloadSymbolsIdxArray     = waveformInfo.payloadSymbolsIdxs;
+            this.sampleArray                = waveformData;
         end
 
         function calcWaveformParameters(this)
-
-        end
-
-        function calcdopplerSHift
-
+            % Метод класса, реализующий расчет параметров сигнала.
+            this.calcWaveformMeanPower();
+            this.calcChannelBandwidth();
+            this.calcModulationType();
+            this.calcWaveformDuration();            
+            this.calcDopplerShift();
+            this.calcEvmPerformance();            
         end
 
         function plotPowerSpectrumDensity(this)
+            % Метод класса, реализующий вывод спектральной плотности средней мощности в частотной области.
 
         end
 
         function plotPayloadConstellation(this)
+            % Метод класса, реализующий вывод созвездия на комплексной плоскости.
+
+        end
+    end
+
+    methods(Access = private)
+
+        function calcWaveformMeanPower(this)
+            % Метод класса, реализующий расчет среднеквадратичного значения мощности сигнала.
+
+        end
+
+        function calcChannelBandwidth(this)
+            % Метод класса, реализующий расчет ширины полосы канала.
+
+        end
+
+        function calcModulationType(this)
+            % Метод класса, реализующий вычисления типа модуляционной схемы.
+
+        end
+
+        function calcWaveformDuration(this)
+            % Метод класса, реализующий расчет длины анализируемого сигнала.
+
+        end
+
+        function calcDopplerShift(this)
+            % Метод класса, реализующий расчет Допплеровского сдвига частоты.
 
         end
 
         function calcEvmPerformance(this)
+            % Метод класса, реализующий расчет среднеквадратичное значение модуля вектора ошибки.
 
         end
     end
