@@ -16,7 +16,7 @@ fprintf('Waveform Parameters: \n');
 fprintf('Mean Power: %f \n', waveformAnalyzerObj.waveformMeanPower);
 fprintf('Bandwidth: %.0f Hz \n', waveformAnalyzerObj.channelBandwidth);
 fprintf('Modulation Type: %s \n', waveformAnalyzerObj.modulationType);
-fprintf('Duration: %f mcs \n', waveformAnalyzerObj.waveformDuration*1000*1000);
+fprintf('Duration: %.2f mcs \n', waveformAnalyzerObj.waveformDuration * 1e6);
 fprintf('Doppler Shift: %f Hz \n', waveformAnalyzerObj.dopplerShift);
 
 % Вывод спектральной плотности средней мощности в частотной области

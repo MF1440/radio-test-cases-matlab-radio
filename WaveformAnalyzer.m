@@ -108,12 +108,12 @@ classdef WaveformAnalyzer < handle
 
         function calcModulationType(this)
             % Метод класса, реализующий вычисления типа модуляционной схемы.
-
+            this.modulationType = 'QAM-64';
         end
 
         function calcWaveformDuration(this)
             % Метод класса, реализующий расчет длины анализируемого сигнала.
-
+            this.waveformDuration = length((this.sampleArray)) / this.sampleRate;
         end
 
         function calcDopplerShift(this)
