@@ -101,7 +101,8 @@ classdef WaveformAnalyzer < handle
 
         function plotPayloadConstellation(this)
             % Метод класса, реализующий вывод созвездия на комплексной плоскости.
-
+            scatterplot(this.payloadSymbolArray);
+            title('Payload Constellation');            
         end
     end
 
