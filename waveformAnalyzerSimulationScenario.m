@@ -11,6 +11,9 @@ waveform = load("waveformSource.mat").rxWaveform;
 % Запуск конструктора класса WaveformAnalyzer
 waveformAnalyzerObj = WaveformAnalyzer(waveform, info);
 
+% Очищаем исходные данные
+clear info waveform
+
 % Расчет параметров сигнала
 waveformAnalyzerObj.calcWaveformParameters();
 fprintf('Waveform Parameters: \n');

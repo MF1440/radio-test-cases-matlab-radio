@@ -84,7 +84,6 @@ classdef WaveformAnalyzer < handle
 
         function plotPowerSpectrumDensity(this)
             % Метод класса, реализующий вывод спектральной плотности средней мощности в частотной области.
-            
             % Преобразование Фурье сигнала
             signalFft = fftshift(fft(this.sampleArray));
             % Вычисление спектральной плотности мощности
@@ -172,13 +171,13 @@ classdef WaveformAnalyzer < handle
                 % Семплы текущего префикса
                 currentPrefix = currentSymbol(1:this.cyclicPrefixLengthArray(symbolIdx));
                 % Вычисление набегов фазы
-                phaseArray = angle(currentSymbol(end - this.cyclicPrefixLengthArray(symbolIdx) + 1 : end) .* conj(currentPrefix));
+                phaseArray = angle(currentSymbol(end - this.cyclicPrefixLengthArray(symbolIdx) + 1:end) .* conj(currentPrefix));
                 % Вычисление набега фазы на символ с учетом windowing
                 phaseShiftArray(symbolIdx) = mean(phaseArray(1:end - this.windowing));
                 % Вычисление начала следующего символа
                 symbolOffset = symbolOffset + this.symbolLengthArray(symbolIdx);
             end
-
+            % Вычисление доплеровского сдвига частоты
             this.dopplerShift = mean(phaseShiftArray) * this.sampleRate / this.fftSize / (2 * pi);
         end
 
