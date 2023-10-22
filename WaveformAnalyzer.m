@@ -121,7 +121,40 @@ classdef WaveformAnalyzer < handle
 
         function calcModulationType(this)
             % Метод класса, реализующий вычисления типа модуляционной схемы.
-            this.modulationType = 'QAM-64';
+            % Массив проверяемых порядков модуляции
+            orderArray = [2, 4, 16, 64, 256];
+            % Резервируем массив средних ошибок
+            errorArray = zeros(1, length(orderArray));
+            for orderIdx = 1:length(orderArray)
+                currentOrder = orderArray(orderIdx);
+                % Генерация сетки созвездия
+                constellationGrid = qammod((0:currentOrder-1)', currentOrder, 'UnitAveragePower', true);
+                constellationGridRepMat = repmat(constellationGrid, 1, length(this.payloadSymbolArray))';
+                % Вычисляем ошибки до каждого возможного модуляционного символа
+                symbolErrorMat = abs(this.payloadSymbolArray - constellationGridRepMat);
+                % Вычисляем мин ошибку для каждого информационного символа
+                minErrorArray = min(symbolErrorMat, [], 2);
+                % Сохраняем среднюю ошибки по всем символам
+                errorArray(orderIdx) = mean(minErrorArray); 
+            end
+            % Определяем порядок модуляции по критерию минимума средней
+            % ошибки по всем информационным символам
+            [~, indMin] = min(errorArray);
+            modOrder = orderArray(indMin);
+            switch modOrder
+                case 2
+                    this.modulationType = 'BPSK';
+                case 4
+                    this.modulationType = 'QPSK';
+                case 16
+                    this.modulationType = 'QAM-16';
+                case 64
+                    this.modulationType = 'QAM-64';
+                case 256
+                    this.modulationType = 'QAM-256';
+                otherwise
+                    this.modulationType = 'Unknown modulation';
+            end
         end
 
         function calcWaveformDuration(this)

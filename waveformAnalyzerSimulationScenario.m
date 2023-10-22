@@ -1,6 +1,7 @@
 % Скрипт для запуска waveformAnalyxer
 clc
 clear
+close all
 
 % Загрузка исходных данных
 addpath waveform/
