@@ -44,14 +44,14 @@ classdef Beamformer < handle
             this.allocationMatrix = simulationParams.radAllocationMatrix;
 
             % Генерация канальных коэффициентов
-            this.calcChannelRealization;
+            this.calcChannelRealization();
 
             % Расчет матриц прекодирования
-            this.calcBeamformerWeights;
+            this.calcBeamformerWeights();
 
             % Расчет спектральной эффективности радиопередачи с учетом
             % матрицы прекодирования
-            this.calcSpectralPerformance;
+            this.calcSpectralPerformance();
         end
 
         function calcChannelRealization(this)
@@ -76,7 +76,7 @@ classdef Beamformer < handle
             % Произвольно расположим пользователей на Земле в пределе 100 км от
             % подспутниковой точки КА
             layout.randomize_rx_positions(100e3, 0, 0, 0);
-            % Определеим ориаентации антенн пользовательских терминалов
+            % Определеим ориентации антенн пользовательских терминалов
             uePos = layout.tx_track.initial_position;
             orientation = zeros(3, 1);
             for userIdx = 1 : this.nUsers
