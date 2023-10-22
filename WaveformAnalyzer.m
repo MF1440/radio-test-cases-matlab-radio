@@ -164,7 +164,22 @@ classdef WaveformAnalyzer < handle
 
         function calcDopplerShift(this)
             % Метод класса, реализующий расчет Допплеровского сдвига частоты.
+            symbolOffset = 1;
+            phaseShiftArray = zeros(this.symbolsCount, 1);
+            for symbolIdx = 1:this.symbolsCount
+                % Семплы текущего символа
+                currentSymbol = this.sampleArray(symbolOffset:symbolOffset + this.symbolLengthArray(symbolIdx) - 1);
+                % Семплы текущего префикса
+                currentPrefix = currentSymbol(1:this.cyclicPrefixLengthArray(symbolIdx));
+                % Вычисление набегов фазы
+                phaseArray = angle(currentSymbol(end - this.cyclicPrefixLengthArray(symbolIdx) + 1 : end) .* conj(currentPrefix));
+                % Вычисление набега фазы на символ с учетом windowing
+                phaseShiftArray(symbolIdx) = mean(phaseArray(1:end - this.windowing));
+                % Вычисление начала следующего символа
+                symbolOffset = symbolOffset + this.symbolLengthArray(symbolIdx);
+            end
 
+            this.dopplerShift = mean(phaseShiftArray) * this.sampleRate / this.fftSize / (2 * pi);
         end
 
         function calcEvmPerformance(this)
