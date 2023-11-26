@@ -21,7 +21,7 @@ classdef Beamformer < handle
         verticalElementsCount
         allocationMatrix
         multiuserLayout
-        nUsers
+        usersCount
         snrdB
     end
 
@@ -37,11 +37,11 @@ classdef Beamformer < handle
         function this = Beamformer(simulationParams)
             % Конструктор класса
             % Парсинг входной структуры
-            this.horizontalElementsCount = simulationParams.horizontalElementsCount;
-            this.verticalElementsCount = simulationParams.verticalElementsCount;
-            this.nUsers = simulationParams.nUsers;
-            this.beamformerMethod = simulationParams.beamformerMethod;
-            this.allocationMatrix = simulationParams.radAllocationMatrix;
+            this.horizontalElementsCount =      simulationParams.horizontalElementsCount;
+            this.verticalElementsCount   =      simulationParams.verticalElementsCount;
+            this.usersCount              =      simulationParams.usersCount;
+            this.beamformerMethod        =      simulationParams.beamformerMethod;
+            this.allocationMatrix        =      simulationParams.radAllocationMatrix;
 
             % Генерация канальных коэффициентов
             this.calcChannelRealization;
@@ -72,14 +72,14 @@ classdef Beamformer < handle
             % Повернем антенну КА таким образом чтобы она смотрела в надир
             layout.tx_track.orientation = [0; -pi/2; 0];
             % Зададим количество пользователей
-            layout.no_rx = this.nUsers;
+            layout.no_rx = this.usersCount;
             % Произвольно расположим пользователей на Земле в пределе 100 км от
             % подспутниковой точки КА
             layout.randomize_rx_positions(100e3, 0, 0, 0);
             % Определеим ориаентации антенн пользовательских терминалов
             uePos = layout.tx_track.initial_position;
             orientation = zeros(3, 1);
-            for userIdx = 1 : this.nUsers
+            for userIdx = 1 : this.usersCount
                 uePosTemp = layout.rx_track(1, userIdx).initial_position;
                 rt = uePos - uePosTemp;
                 rt = rt / norm(rt);
@@ -99,13 +99,27 @@ classdef Beamformer < handle
             vertPanSpacing = 0;
             horizPanSpacing = 0;
             % Передающая антенна КА
-            satTransmitAnt = qd_arrayant('3gpp-nr', this.horizontalElementsCount,...
-                this.verticalElementsCount,...
-                s.center_frequency, polInd, 0, elementSpacing, verticalPanels,...
-                horizontalPanels, vertPanSpacing, horizPanSpacing);
+            satTransmitAnt = qd_arrayant('3gpp-nr', ...
+                                         this.horizontalElementsCount,...
+                                         this.verticalElementsCount,...
+                                         s.center_frequency, ...
+                                         polInd, ...
+                                         0, ...
+                                         elementSpacing, ...
+                                         verticalPanels,...
+                                         horizontalPanels, ...
+                                         vertPanSpacing, ...
+                                         horizPanSpacing);
             % Приемные антенны пользователей
-            ueReceiveAnt = qd_arrayant('parabolic', 0.3,  s.center_frequency,...
-                [], 1, 1, [], []);
+            ueReceiveAnt = qd_arrayant('parabolic', ...
+                                       0.3,  ...
+                                       s.center_frequency,...
+                                       [], ...
+                                       1, ...
+                                       1, ...
+                                       [], ...
+                                       []);
+
             % Назначаем антенны пользователям и КА
             layout.tx_array = satTransmitAnt;
             layout.rx_array = ueReceiveAnt;
@@ -116,11 +130,11 @@ classdef Beamformer < handle
             channelBuilder.gen_parameters;
             c = channelBuilder.get_channels;
             % Сырые канальные коэффициенты
-            rawChannelCoeffs = transpose(...
-                reshape([ c.coeff ], [ satTransmitAnt.no_elements, layout.no_rx ]));
+            rawChannelCoeffs = transpose(reshape(c.coeff, ...
+                                         [satTransmitAnt.no_elements, layout.no_rx]));
             % Среденее значение коэффициента передачи
-            averacalcransmissionGain = sum(sum(abs(rawChannelCoeffs) .^ 2))...
-                / (satTransmitAnt.no_elements * layout.no_rx);
+            averacalcransmissionGain = sum(sum(abs(rawChannelCoeffs) .^ 2)) /...
+                                           (satTransmitAnt.no_elements * layout.no_rx);
             % Нормированная матрица канала связи
             this.channelCoeffs = rawChannelCoeffs ./ sqrt(averacalcransmissionGain);
             this.multiuserLayout = layout;
@@ -143,7 +157,7 @@ classdef Beamformer < handle
             switch this.beamformerMethod
                 case 'MRT'
                     % Расссчитаем весовые коэффициенты матрицы
-                    for userIdx = 1 : this.nUsers
+                    for userIdx = 1 : this.usersCount
                         % коэффициенты канала c учетом тензора D
                         channelVector = (this.channelCoeffs(userIdx, :) * D(:, :, userIdx))';
                         % нормируем результат
@@ -151,7 +165,7 @@ classdef Beamformer < handle
                     end
                 case 'ZF'
                     % Расссчитаем весовые коэффициенты матрицы
-                    for userIdx = 1 : this.nUsers
+                    for userIdx = 1 : this.usersCount
                         % коэффициенты канала c учетом тензора D
                         effectiveChannel = (this.channelCoeffs * D(:, :, userIdx))';
                         % Расчет псевдоинверсии канальной матрицы
