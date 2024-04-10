@@ -47,13 +47,41 @@ classdef WaveformAnalyzer < handle
 
     methods
         function this = WaveformAnalyzer(waveformInfoFile, waveformSourceFile)
+            % ОПИСАНИЕ:
+            % Конструктор класса заполняет соответствующие поля класса
+            % waveformInfoFile и waveformSourceFile
+            %
+            % ВХОДНЫЕ ДАННЫЕ:
+            % waveformInfoFile - путь к файлу с информацией о сигнале
+            % waveformSourceFile - путь к файлу с сигналом во временной области 
+            %
+            % ВЫХОДНЫЕ ЗНАЧЕНИЯ:
+            % нет
+
             % read information about data
-            this.waveformInfo = load('waveform/waveformInfo.mat').info;
+            this.waveformInfo = load(waveformInfoFile).info;
             % read data waveform
-            this.waveformSource = load('waveform/waveformSource.mat').rxWaveform;
+            this.waveformSource = load(waveformSourceFile).rxWaveform;
         end
 
         function calcWaveformParameters(this)
+            % ОПИСАНИЕ:
+            % Функция рассчитывает основные параметры сигнала и заполняет
+            % соответствующие поля класса:
+            % waveformMeanPower - средняя мощность сигнала
+            % channelBandwidth - ширина полосы
+            % uniqueSymbols - уникальные символы сигнального созвездия
+            % modulationType - тип модуляции
+            % dopplerShift - доплеровский сдвиг для всего слота
+            % dopplerShiftAllSym - доплеровский сдвиг для каждого символа
+            % waveformDuration - длительность сигнала
+            %
+            % ВХОДНЫЕ ДАННЫЕ:
+            % нет
+            %
+            % ВЫХОДНЫЕ ЗНАЧЕНИЯ:
+            % нет
+
             % mean power
             this.waveformMeanPower = mean(abs(this.waveformSource).^2);
 
@@ -83,14 +111,23 @@ classdef WaveformAnalyzer < handle
             end
 
             % calculate doppler shift
-            this.calcDopplerSHift();
+            [this.dopplerShift, this.dopplerShiftAllSym] = this.calcDopplerSHift();
 
             % calculate waveform duration [s]
             this.waveformDuration = length(this.waveformSource) / this.waveformInfo.SampleRate;
         end
         
-        function calcDopplerSHift(this)
-            % cyclic prefix correlation-based Doppler Frequency shift estimation
+        function [dopplerShift, dopplerShiftAllSym] = calcDopplerSHift(this)
+            % ОПИСАНИЕ:
+            % Функция рассчитывает доплеровский сдвиг на основе корреляции
+            % циклического префикса
+            %
+            % ВХОДНЫЕ ДАННЫЕ:
+            % нет
+            %
+            % ВЫХОДНЫЕ ЗНАЧЕНИЯ:
+            % dopplerShiftAllSym - доплеровский сдвиг для каждого символа
+            % dopplerShift -  доплеровский сдвиг для фрейма
 
             Nfft = this.waveformInfo.Nfft;
             Fs = this.waveformInfo.SampleRate;
@@ -113,13 +150,23 @@ classdef WaveformAnalyzer < handle
                 slotCorr = slotCorr + symCorr;
 
                 % doppler shift for the current symbol
-                this.dopplerShiftAllSym{symIdx} = - Fs * (angle(symCorr) / (2 * pi * Nfft));
+                dopplerShiftAllSym{symIdx} = - Fs * (angle(symCorr) / (2 * pi * Nfft));
             end
             % doppler shift for the whole slot
-            this.dopplerShift = -Fs * (angle(slotCorr) / (2 * pi * Nfft));
+            dopplerShift = -Fs * (angle(slotCorr) / (2 * pi * Nfft));
         end
 
-        function plotPowerSpectrumDensity(this, fc)
+        function plotPowerSpectrumDensity(this)
+            % ОПИСАНИЕ:
+            % Функция визуализирует спектральную плотность мощности для
+            % исследуемого сигнала
+            %
+            % ВХОДНЫЕ ДАННЫЕ:
+            % нет
+            %
+            % ВЫХОДНЫЕ ЗНАЧЕНИЯ:
+            % нет
+
             % read parameters
             Nfft = this.waveformInfo.Nfft;
             Fs = this.waveformInfo.SampleRate;
@@ -142,6 +189,15 @@ classdef WaveformAnalyzer < handle
         end
 
         function plotPayloadConstellation(this)
+            % ОПИСАНИЕ:
+            % Функция визуализирует сигнальное созвездие
+            %
+            % ВХОДНЫЕ ДАННЫЕ:
+            % нет
+            %
+            % ВЫХОДНЫЕ ЗНАЧЕНИЯ:
+            % нет
+
             figure(2);
             scatter(real(this.uniqueSymbols),imag(this.uniqueSymbols));
             max_val = 1.5*round(max(abs(this.uniqueSymbols)))/2;
