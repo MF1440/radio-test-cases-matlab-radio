@@ -7,8 +7,8 @@
 
 ## Содержание репозитория ##
 Для выполнения задания нами предоставляется исходный код в составе:
-- WaveformAnalyzer.m – файл, реализующий класс Beamformer
-- simulationScenario.m – файл "сценария"
+- WaveformAnalyzer.m – файл, реализующий класс WaveformAnalyzer
+- waveformAnalyzerSimulationScenario.m – файл "сценария"
 - Папка waveform - необходимые данные для выполнения задания
 
 ## Задание: ##
