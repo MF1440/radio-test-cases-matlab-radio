@@ -6,7 +6,7 @@ close all
 % load('waveformSource.mat');
 load(fname1);
 load(fname2);
-cd ..\
+cd ..
 %silent_mode = 0;
 number_points_to_display_in_constellation = info.subCarriersCount;%3168
 nfft=info.Nfft;
