@@ -37,16 +37,29 @@ classdef WaveformAnalyzer < handle
         modulationType
         waveformDuration
         dopplershift
+        % дополнительные поля
+        waveformSource
+        waveformInfo
     end
 
     methods
-        function this = WaveformAnalyzer()
+        function this = WaveformAnalyzer(waveformSource, waveformInfo)
             % Конструктор класса. Чтение waveform-ы во временной области и структуры с информацией
-            % необходимой для дальнейшей обработки данных и заполнения полей класса
+            % необходимой для дальнейшей обработки данных и заполнения 
+            % полей класса
+            this.waveformSource = waveformSource;
+            this.waveformInfo = waveformInfo;
         end
 
         function calcWaveformParameters(this)
-
+            % подсчет среднеквадратического значения мощности
+            powerVec = real(this.waveformSource).^2 + imag(this.waveformSource).^2;
+            this.waveformMeanPower = sqrt(mean(powerVec.^2));
+            % определение типа модуляции
+            this.modulationType = unique(this.waveformInfo.payloadSymbols);
+            % длительность waveform
+            T = 1/this.waveformInfo.SampleRate;
+            this.waveformDuration = length(this.waveformSource)*T;
         end
 
         function calcdopplerSHift
@@ -54,11 +67,23 @@ classdef WaveformAnalyzer < handle
         end
 
         function plotPowerSpectrumDensity(this)
-
+            spectrum = fftshift(fft(this.waveformSource));
+            N = length(this.waveformSource);
+            freq = (-N/2:N/2-1)/N;
+            figure
+            plot(freq,10*log10(abs(spectrum).^2))
+            grid on
+            title('Power spuctrum density of QPSK modulated signal');
+            xlabel('frequency');
+            ylabel('10*log10(power)');
         end
 
         function plotPayloadConstellation(this)
-
+            figure
+            plot(this.waveformInfo.payloadSymbols, 'o')
+            title('Payload constellation');
+            xlabel('I');
+            ylabel('Q');
         end
 
         function calcEvmPerformance(this)
