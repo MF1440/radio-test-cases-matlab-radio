@@ -2,38 +2,38 @@ clc
 clear
 addpath quadriga_src/
 
-% Р‘Р»РѕРє 1 РІС…РѕРґРЅС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ РґР»СЏ СЂР°СЃС‡РµС‚Р°
+% Блок 1 входных параметров для расчета
         simulationParams1.horizontalElementsCount = 8;
         simulationParams1.verticalElementsCount = 8;
         simulationParams1.nUsers = 8;
         simulationParams1.beamformerMethod = 'MRT';
         simulationParams1.radAllocationMatrix = [];
-% Р—Р°РїСѓСЃРє РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂР° РєР»Р°СЃСЃР° 1
+% Запуск конструктора класса 1
 beamformerObject1 = Beamformer(simulationParams1);
-% Р Р°СЃС‡РµС‚ РєР°РЅР°Р»СЊРЅС‹С… РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ
+% Расчет канальных коэффициентов
 beamformerObject1.calcChannelRealization
-% Р Р°СЃС‡РµС‚ РјР°С‚СЂРёС† РїСЂРµРєРѕРґРёСЂРѕРІР°РЅРёСЏ
+% Расчет матриц прекодирования
 beamformerObject1.calcBeamformerWeights
-% Р Р°СЃС‡РµС‚ СЃРїРµРєС‚СЂР°Р»СЊРЅРѕР№ СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚Рё
+% Расчет спектральной эффективности
 beamformerObject1.calcSpectralPerformance
 
-% Р‘Р»РѕРє 2 РІС…РѕРґРЅС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ РґР»СЏ СЂР°СЃС‡РµС‚Р°
+% Блок 2 входных параметров для расчета
         simulationParams2.horizontalElementsCount = 8;
         simulationParams2.verticalElementsCount = 8;
         simulationParams2.nUsers = 8;
         simulationParams2.beamformerMethod = 'ZF';
         simulationParams2.radAllocationMatrix = [];
-% Р—Р°РїСѓСЃРє РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂР° РєР»Р°СЃСЃР° 2
+% Запуск конструктора класса 2
 beamformerObject2 = Beamformer(simulationParams2);
-% Р Р°СЃС‡РµС‚ РєР°РЅР°Р»СЊРЅС‹С… РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ
+% Расчет канальных коэффициентов
 beamformerObject2.calcChannelRealization
-% Р Р°СЃС‡РµС‚ РјР°С‚СЂРёС† РїСЂРµРєРѕРґРёСЂРѕРІР°РЅРёСЏ
+% Расчет матриц прекодирования
 beamformerObject2.calcBeamformerWeights
-% Р Р°СЃС‡РµС‚ СЃРїРµРєС‚СЂР°Р»СЊРЅРѕР№ СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚Рё
+% Расчет спектральной эффективности
 beamformerObject2.calcSpectralPerformance
 
-% РЎРѕР·РґР°РЅРёРµ РјР°СЃСЃРёРІР° РѕР±СЉРµРєС‚РѕРІ РёР· СЂР°Р·РЅС‹С… Р±Р»РѕРєРѕРІ РІС…РѕРґРЅС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ
+% Создание массива объектов из разных блоков входных параметров
 beamformerObjects = [beamformerObject1, beamformerObject2];
 
-% Р’С‹РІРѕРґ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ СЃРїРµРєС‚СЂР°Р»СЊРЅРѕР№ СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚Рё РѕС‚ РћРЎРЁ
+% Вывод зависимостей спектральной эффективности от ОСШ
 beamformerObjects.vuzailizeSpectralPerformance
