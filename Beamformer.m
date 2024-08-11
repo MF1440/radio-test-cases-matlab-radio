@@ -44,14 +44,14 @@ classdef Beamformer < handle
             this.allocationMatrix = simulationParams.radAllocationMatrix;
 
             % Генерация канальных коэффициентов
-            this.calcChannelRealization;
+            this.calcChannelRealization();
 
             % Расчет матриц прекодирования
-            this.calcBeamformerWeights;
+            this.calcBeamformerWeights();
 
             % Расчет спектральной эффективности радиопередачи с учетом
             % матрицы прекодирования
-            this.calcSpectralPerformance;
+            this.calcSpectralPerformance();
         end
 
         function calcChannelRealization(this)
@@ -76,7 +76,7 @@ classdef Beamformer < handle
             % Произвольно расположим пользователей на Земле в пределе 100 км от
             % подспутниковой точки КА
             layout.randomize_rx_positions(100e3, 0, 0, 0);
-            % Определеим ориаентации антенн пользовательских терминалов
+            % Определяем ориентации антенн пользовательских терминалов
             uePos = layout.tx_track.initial_position;
             orientation = zeros(3, 1);
             for userIdx = 1 : this.nUsers
@@ -119,10 +119,10 @@ classdef Beamformer < handle
             rawChannelCoeffs = transpose(...
                 reshape([ c.coeff ], [ satTransmitAnt.no_elements, layout.no_rx ]));
             % Среденее значение коэффициента передачи
-            averacalcransmissionGain = sum(sum(abs(rawChannelCoeffs) .^ 2))...
+            averaCalcTransmissionGain = sum(sum(abs(rawChannelCoeffs) .^ 2))...
                 / (satTransmitAnt.no_elements * layout.no_rx);
             % Нормированная матрица канала связи
-            this.channelCoeffs = rawChannelCoeffs ./ sqrt(averacalcransmissionGain);
+            this.channelCoeffs = rawChannelCoeffs ./ sqrt(averaCalcTransmissionGain);
             this.multiuserLayout = layout;
         end % Конец function calcChannelRealization
 

@@ -36,24 +36,66 @@ classdef WaveformAnalyzer < handle
         noiseMeanPower
         modulationType
         waveformDuration
-        dopplershift
+        dopplerShift
     end
 
     methods
-        function this = WaveformAnalyzer()
-            % Конструктор класса. Чтение waveform-ы во временной области и структуры с информацией
-            % необходимой для дальнейшей обработки данных и заполнения полей класса
-        end
-
-        function calcWaveformParameters(this)
-
-        end
-
-        function calcdopplerSHift
+        function this = WaveformAnalyzer(info, source)
+            % Конструктор класса. 
+            
+            % Заполнение полей класса по данным info, source
+           this.calcWaveformParameters(info, source);
 
         end
 
-        function plotPowerSpectrumDensity(this)
+        function calcWaveformParameters(this, info, source)
+            % Расчет средней мощности
+            this.waveformMeanPower = mean(abs(source).^2);
+            
+            % Расчет ширины канала занятого под сигнал <SampleRate
+            this.channelBandwidth = info.SampleRate * info.subCarriersCount / info.Nfft;
+
+            % Заполенение поля тип модуляции 
+            this.modulationType = 'OFDM';
+
+            % Длительность source в секундах
+            this.waveformDuration = numel(source)/info.SampleRate;
+
+        end
+
+        function calcDopplerShift(this, centralFrequency, radialSpeed)
+            % centralFrequency - центральная частота сигнала 
+            % radialSpeed - радиальная скорость передатчика-приемника
+
+            this.dopplerShift = centralFrequency *  radialSpeed / physconst('LightSpeed');
+        end
+
+        function plotPowerSpectrumDensity(this, source, sampleRate)
+            [xPsd, xFreq] = pwelch(source,[],[],1024,sampleRate);
+
+            xPsdReshRoll = circshift(xPsd, numel(xPsd)/2);
+            xLog = 10*log10(xPsdReshRoll);
+
+            % Преобразование Hz -> MHz
+            if sampleRate > 1e6
+                freqScaling = 1e6;
+                freqScalingText = 'MHz';
+            else
+                freqScaling = 1;
+                freqScalingText = 'Hz';
+            end
+                
+            xFreq(xFreq>=sampleRate/2) = xFreq(xFreq>=sampleRate/2)-sampleRate; 
+            xFreqRoll = circshift(xFreq, numel(xPsd)/2);
+            xFreqRoll = xFreqRoll./freqScaling;
+            
+            plot( xFreqRoll, xLog);
+            grid;
+             
+            xlabel(['Frequency, ', freqScalingText])
+            ylabel('PSD, dB')
+            title(['mean power is ', num2str(this.waveformMeanPower, 2), ...
+                   ', channel bandwidth is ', num2str(this.channelBandwidth/freqScaling, 3), freqScalingText] )
 
         end
 
