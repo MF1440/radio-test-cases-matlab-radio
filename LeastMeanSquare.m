@@ -31,14 +31,16 @@ classdef LeastMeanSquare < handle
         function this = LeastMeanSquare(simulationParams)
             % Конструктор класса
             
-            % Проверить, что обязательные параметры заданы
-            if ~isfield(simulationParams, 'model') && ~isfield(simulationParams, 'modelOrder')
-                error("model and modelOrder must be the fields of input structure");
+            % Проверить, что обязательные параметры заданы и сохранить их
+            obligatoryFieldList = ["model"; "modelOrder"];
+            for obligatoryFieldIdx = 1:length(obligatoryFieldList)
+                obligatoryFieldThis = obligatoryFieldList(obligatoryFieldIdx);
+                if isfield(simulationParams, obligatoryFieldThis)
+                    this.(obligatoryFieldThis) = simulationParams.(obligatoryFieldThis);
+                else
+                    error("Miss obligatory field "+obligatoryFieldThis);
+                end
             end
-            
-            % Сохранить обязательные параметры
-            this.model = simulationParams.model;
-            this.modelOrder = simulationParams.modelOrder;
             
             % Проинициализировать коэф модели в зависимости от её типа
             switch this.model
@@ -61,55 +63,15 @@ classdef LeastMeanSquare < handle
                     
             end
             
-            % Далее считаем необязательные параметры, если они заданы
-            
-            % Считать параметр updateMethod, если он задан
-            if isfield(simulationParams, 'updateMethod')
-                this.updateMethod = simulationParams.updateMethod;
-            else % Иначе сообщить об использовании дефолтного updateMethod
-                warning("Default updateMethod = "+string(this.updateMethod)+" is used");
-            end
-            
-            % Считать параметр mu, если он задан
-            if isfield(simulationParams, 'mu')
-                this.mu = simulationParams.mu;
-            else % Иначе сообщить об использовании дефолтного mu
-                warning("Default mu = "+string(this.mu)+" is used");
-            end
-            
-            % Считать параметр leakageFactor, если он задан
-            if isfield(simulationParams, 'leakageFactor')
-                this.leakageFactor = simulationParams.leakageFactor;
-            else % Иначе сообщить об использовании дефолтного leakageFactor
-                warning("Default leakageFactor = "+string(this.leakageFactor)+" is used");
-            end
-            
-            % Считать параметр signalType, если он задан
-            if isfield(simulationParams, 'signalType')
-                this.signalType = simulationParams.signalType;
-            else % Иначе сообщить об использовании дефолтного signalType
-                warning("Default signalType = "+string(this.signalType)+" is used");
-            end
-            
-            % Считать параметр seed, если он задан
-            if isfield(simulationParams, 'seed')
-                this.seed = simulationParams.seed;
-            else % Иначе сообщить об использовании дефолтного seed
-                warning("Default seed = "+string(this.seed)+" is used");
-            end
-            
-            % Считать параметр inputScaleCoeffs, если он задан
-            if isfield(simulationParams, 'inputScaleCoeffs')
-                this.inputScaleCoeffs = simulationParams.inputScaleCoeffs;
-            else % Иначе сообщить об использовании дефолтного inputScaleCoeffs
-                warning("Default inputScaleCoeffs = "+string(this.inputScaleCoeffs)+" is used");
-            end
-            
-            % Считать параметр iterCount, если он задан
-            if isfield(simulationParams, 'iterCount')
-                this.iterCount = simulationParams.iterCount;
-            else % Иначе сообщить об использовании дефолтного iterCount
-                warning("Default iterCount = "+string(this.iterCount)+" is used");
+            % Сохраняем необязательные параметры, если они заданы
+            optionalFieldList = ["updateMethod"; "mu"; "leakageFactor"; "signalType"; "seed";"inputScaleCoeffs";"iterCount"];
+            for optionalFieldIdx = 1:length(optionalFieldList)
+                optionalFieldThis = optionalFieldList(optionalFieldIdx);
+                if isfield(simulationParams, optionalFieldThis)
+                    this.(optionalFieldThis) = simulationParams.(optionalFieldThis);
+                else
+                    warning("Default "+optionalFieldThis+"="+string(this.(optionalFieldThis))+" is used");
+                end
             end
             
             % Наконец, инициализируем память для расчета ошибок
